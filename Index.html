@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ConectaRH</title>
+    <style>
+      :root {
+        --red-900: #8e1c1c;
+        --red-700: #b71c1c;
+        --red-600: #c62828;
+        --red-500: #d32f2f;
+        --red-100: #fdecec;
+        --red-50: #fff6f6;
+        --gray-900: #111111;
+        --gray-700: #444444;
+        --gray-500: #757575;
+        --gray-300: #d9d9d9;
+        --gray-200: #e9e9e9;
+        --white: #ffffff;
+        --success: #2e7d32;
+        --warning: #ef6c00;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: linear-gradient(180deg, var(--red-50) 0%, #fff 30%, #f8f8f8 100%);
+        color: var(--gray-900);
+      }
+
+      a { text-decoration: none; }
+      button, input, select, textarea { font: inherit; }
+
+      .hidden { display: none !important; }
+
+      .app-shell {
+        min-height: 100vh;
+      }
+
+      .topbar {
+        background: linear-gradient(135deg, var(--red-600) 0%, var(--red-900) 100%);
+        color: var(--white);
+        padding: 14px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 10px 24px rgba(140, 20, 20, 0.15);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .brand-mark {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        background: rgba(255,255,255,0.18);
+        border: 1px solid rgba(255,255,255,0.2);
+        font-size: 1.2rem;
+        font-weight: 700;
+      }
+
+      .brand h1 {
+        margin: 0;
+        font-size: 1.1rem;
+      }
+
+      .user-box {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .pill {
+        background: rgba(255,255,255,0.12);
+        border: 1px solid rgba(255,255,255,0.18);
+        border-radius: 999px;
+        padding: 8px 12px;
+        font-size: 0.8rem;
+      }
+
+      .logout-btn, .btn-primary, .btn-secondary, .btn-danger, .btn-small {
+        border: none;
+        cursor: pointer;
+        border-radius: 10px;
+        transition: 0.2s ease;
+      }
+
+      .logout-btn {
+        background: rgba(255,255,255,0.12);
+        color: var(--white);
+        padding: 9px 12px;
+        border: 1px solid rgba(255,255,255,0.2);
+      }
+
+      .logout-btn:hover { background: rgba(255,255,255,0.2); }
+
+      .layout {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 24px;
+        display: grid;
+        grid-template-columns: 240px 1fr;
+        gap: 24px;
+      }
+
+      .sidebar {
+        background: var(--white);
+        border: 1px solid var(--gray-200);
+        border-radius: 18px;
+        padding: 18px;
+        height: fit-content;
+        box-shadow: 0 12px 30px rgba(15,15,15,0.04);
+      }
+
+      .nav-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .nav-item {
+        width: 100%;
+        padding: 12px 14px;
+        border: 1px solid transparent;
+        background: #fff;
+        color: var(--gray-700);
+        text-align: left;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: 0.2s ease;
+      }
+
+      .nav-item:hover, .nav-item.active {
+        background: var(--red-50);
+        color: var(--red-700);
+        border-color: var(--red-100);
+      }
+
+      .content {
+        min-width: 0;
+      }
+
+      .card {
+        background: var(--white);
+        border-radius: 18px;
+        border: 1px solid var(--gray-200);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 18px;
+        margin-bottom: 24px;
+      }
+
+      .stat-card {
+        padding: 20px 18px;
+      }
+
+      .stat-label {
+        display: block;
+        color: var(--gray-500);
+        font-size: 0.8rem;
+        margin-bottom: 10px;
+      }
+
+      .stat-value {
+        font-weight: 700;
+        color: var(--red-700);
+        font-size: 1.7rem;
+      }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px;
+      }
+
+      .panel {
+        padding: 20px;
+      }
+
+      .panel h2 {
+        margin: 0 0 18px 0;
+        font-size: 1.15rem;
+      }
+
+      .list {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .item {
+        border: 1px solid var(--gray-200);
+        border-radius: 14px;
+        padding: 14px 16px;
+        background: #fff;
+      }
+
+      .item strong {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--gray-900);
+      }
+
+      .meta {
+        color: var(--gray-500);
+        font-size: 0.8rem;
+        margin-top: 6px;
+      }
+
+      .badge {
+        display: inline-block;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        background: var(--red-100);
+        color: var(--red-700);
+      }
+
+      .alert-box {
+        background: var(--red-50);
+        border: 1px solid var(--red-100);
+        color: var(--red-700);
+        border-radius: 12px;
+        padding: 12px 14px;
+        margin-bottom: 18px;
+      }
+
+      .forms {
+        display: grid;
+        gap: 16px;
+      }
+
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .field label {
+        font-weight: 600;
+        color: var(--gray-700);
+        font-size: 0.9rem;
+      }
+
+      .field input,
+      .field select,
+      .field textarea {
+        width: 100%;
+        padding: 11px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--gray-300);
+        background: #fff;
+      }
+
+      .field textarea {
+        min-height: 100px;
+        resize: vertical;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, var(--red-600), var(--red-700));
+        color: var(--white);
+        padding: 12px 18px;
+        font-weight: 700;
+      }
+
+      .btn-primary:hover { filter: brightness(1.04); }
+
+      .btn-secondary {
+        background: var(--white);
+        border: 1px solid var(--red-500);
+        color: var(--red-700);
+        padding: 11px 16px;
+        font-weight: 700;
+      }
+
+      .btn-danger {
+        background: var(--red-600);
+        color: var(--white);
+        padding: 10px 14px;
+      }
+
+      .btn-small {
+        background: var(--red-100);
+        color: var(--red-700);
+        padding: 7px 10px;
+        font-size: 0.8rem;
+      }
+
+      .toolbar {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+      }
+
+      th, td {
+        text-align: left;
+        padding: 12px 10px;
+        border-bottom: 1px solid var(--gray-200);
+        font-size: 0.92rem;
+        vertical-align: top;
+      }
+
+      th {
+        color: var(--red-700);
+        background: #fff6f6;
+      }
+
+      .login-screen {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(135deg, #fff2f2 0%, #ffffff 32%, #fff 100%);
+        padding: 24px;
+      }
+
+      .login-card {
+        width: min(100%, 440px);
+        background: var(--white);
+        border: 1px solid var(--gray-200);
+        border-radius: 24px;
+        box-shadow: 0 20px 50px rgba(150,25,25,0.12);
+        padding: 28px 26px;
+      }
+
+      .login-logo {
+        width: 72px;
+        height: 72px;
+        background: linear-gradient(135deg, var(--red-600), var(--red-900));
+        color: var(--white);
+        border-radius: 18px;
+        display: grid;
+        place-items: center;
+        font-weight: 800;
+        font-size: 1.5rem;
+        margin: 0 auto 14px;
+      }
+
+      .login-card h2 {
+        text-align: center;
+        margin: 0 0 6px 0;
+      }
+
+      .login-card p {
+        margin: 0 0 20px 0;
+        text-align: center;
+        color: var(--gray-500);
+      }
+
+      .login-actions {
+        display: grid;
+        gap: 14px;
+      }
+
+      .toast {
+        position: fixed;
+        right: 20px;
+        bottom: 20px;
+        max-width: 280px;
+        background: #1c1c1c;
+        color: white;
+        padding: 12px 14px;
+        border-radius: 10px;
+        box-shadow: 0 12px 24px rgba(0,0,0,0.2);
+        opacity: 0;
+        transform: translateY(12px);
+        transition: 0.3s ease;
+        z-index: 50;
+      }
+
+      .toast.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .empty-state {
+        padding: 16px;
+        border: 1px dashed var(--gray-300);
+        border-radius: 12px;
+        color: var(--gray-500);
+        background: #fff;
+      }
+
+      @media (max-width: 900px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+        .sidebar {
+          order: 2;
+        }
+        .content {
+          order: 1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="loginView" class="login-screen">
+      <div class="login-card">
+        <div class="login-logo">RH</div>
+        <h2>ConectaRH</h2>
+        <p>Seja bem-vindo(a) ao ambiente interno.</p>
+
+        <div class="login-actions">
+          <div class="field">
+            <label for="cpfLogin">CPF</label>
+            <input id="cpfLogin" type="text" placeholder="Digite seu CPF" maxlength="11" />
+          </div>
+
+          <div class="field">
+            <label for="senhaLogin">Senha</label>
+            <input id="senhaLogin" type="password" placeholder="Digite sua senha" />
+          </div>
+
+          <button class="btn-primary" id="loginBtn">Entrar</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="appView" class="app-shell hidden">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark">R</div>
+          <h1>ConectaRH</h1>
+        </div>
+
+        <div class="user-box">
+          <div id="userBadge" class="pill">Carregando...</div>
+          <button class="logout-btn" id="logoutBtn">Sair</button>
+        </div>
+      </header>
+
+      <div class="layout">
+        <aside class="sidebar">
+          <nav class="nav-list" id="navList">
+            <button class="nav-item active" data-section="dashboard">Dashboard</button>
+            <button class="nav-item" data-section="avisos">Avisos</button>
+            <button class="nav-item" data-section="eventos">Eventos</button>
+            <button class="nav-item" data-section="documentos">Documentos</button>
+            <button class="nav-item" data-section="feedback">Feedback</button>
+            <button class="nav-item" data-section="reconhecimento">Reconhecimento</button>
+            <button class="nav-item" data-section="pesquisa">Pesquisa de Clima</button>
+            <button class="nav-item" data-section="colaboradores">Colaboradores</button>
+          </nav>
+        </aside>
+
+        <main class="content">
+          <section id="dashboardSection" class="page-section">
+            <div id="dashboardContent"></div>
+          </section>
+
+          <section id="avisosSection" class="page-section hidden">
+            <div class="card panel">
+              <h2>Avisos da loja</h2>
+              <div id="avisosContent"></div>
+            </div>
+          </section>
+
+          <section id="eventosSection" class="page-section hidden">
+            <div class="card panel">
+              <h2>Eventos</h2>
+              <div id="eventosContent"></div>
+            </div>
+          </section>
+
+          <section id="documentosSection" class="page-section hidden">
+            <div class="card panel">
+              <h2>Documentos</h2>
+              <div id="documentosContent"></div>
+            </div>
+          </section>
+
+          <section id="feedbackSection" class="page-section hidden">
+            <div class="card panel">
+              <h2>Feedback</h2>
+              <div id="feedbackContent"></div>
+            </div>
+          </section>
+
+          <section id="reconhecimentoSection" class="page-section hidden">
+            <div class="card panel">
+              <h2>Reconhecimento</h2>
+              <div id="reconhecimentoContent"></div>
+            </div>
+          </section>
+
+          <section id="pesquisaSection" class="page-section hidden">
+            <div class="card panel">
+              <h2>Pesquisa de clima</h2>
+              <div id="pesquisaContent"></div>
+            </div>
+          </section>
+
+          <section id="colaboradoresSection" class="page-section hidden">
+            <div class="card panel">
+              <h2>Colaboradores</h2>
+              <div id="colaboradoresContent"></div>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+      const SESSION_KEY = 'conectarhToken';
+      let currentUser = null;
+      let currentToken = null;
+
+      document.getElementById('loginBtn').addEventListener('click', doLogin);
+      document.getElementById('logoutBtn').addEventListener('click', doLogout);
+
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' && document.getElementById('loginView').classList.contains('hidden') === false) {
+          doLogin();
+        }
+      });
+
+      document.querySelectorAll('.nav-item').forEach(function (button) {
+        button.addEventListener('click', function () {
+          const section = button.dataset.section;
+          setActiveSection(section);
+        });
+      });
+
+      function setActiveSection(section) {
+        document.querySelectorAll('.nav-item').forEach(function (item) {
+          item.classList.toggle('active', item.dataset.section === section);
+        });
+        document.querySelectorAll('.page-section').forEach(function (panel) {
+          panel.classList.add('hidden');
+        });
+        const target = document.getElementById(section + 'Section');
+        if (target) {
+          target.classList.remove('hidden');
+        }
+      }
+
+      function showToast(message) {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.classList.add('show');
+        setTimeout(function () {
+          toast.classList.remove('show');
+        }, 2600);
+      }
+
+      function normalizeCPF(value) {
+        return String(value || '').replace(/\D/g, '').slice(0, 11);
+      }
+
+      function doLogin() {
+        const cpf = normalizeCPF(document.getElementById('cpfLogin').value);
+        const senha = document.getElementById('senhaLogin').value;
+
+        if (!cpf || cpf.length !== 11) {
+          showToast('Informe um CPF válido.');
+          return;
+        }
+
+        if (!senha) {
+          showToast('Informe a senha.');
+          return;
+        }
+
+        google.script.run.withSuccessHandler(function (result) {
+          if (!result || !result.sucesso) {
+            showToast(result && result.mensagem ? result.mensagem : 'Erro ao fazer login.');
+            return;
+          }
+
+          currentToken = result.token;
+          currentUser = result.usuario;
+          localStorage.setItem(SESSION_KEY, currentToken);
+
+          if (currentUser.primeiroAcesso) {
+            showToast('Primeiro acesso detectado. Defina sua nova senha.');
+            openPasswordModal();
+          } else {
+            renderApp();
+          }
+        }).login(cpf, senha);
+      }
+
+      function doLogout() {
+        localStorage.removeItem(SESSION_KEY);
+        currentToken = null;
+        currentUser = null;
+        document.getElementById('appView').classList.add('hidden');
+        document.getElementById('loginView').classList.remove('hidden');
+        document.getElementById('cpfLogin').value = '';
+        document.getElementById('senhaLogin').value = '';
+      }
+
+      function openPasswordModal() {
+        const modal = document.createElement('div');
+        modal.innerHTML = `
+          <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.52); display: grid; place-items: center; z-index: 100; padding: 16px;">
+            <div style="width: min(100%, 460px); background: white; border-radius: 18px; padding: 22px; box-shadow: 0 24px 60px rgba(0,0,0,0.2);">
+              <h3 style="margin-top: 0; color: #8e1c1c;">Trocar senha</h3>
+              <p style="margin-bottom: 18px; color: #444;">Você precisa definir uma nova senha para continuar.</p>
+              <div class="field" style="margin-bottom: 12px;">
+                <label>Senha atual</label>
+                <input id="senhaAtualModal" type="password" placeholder="Senha atual" />
+              </div>
+              <div class="field" style="margin-bottom: 12px;">
+                <label>Nova senha</label>
+                <input id="novaSenhaModal" type="password" placeholder="Nova senha (mín. 6 caracteres)" />
+              </div>
+              <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 18px;">
+                <button class="btn-secondary" id="cancelPasswordBtn">Cancelar</button>
+                <button class="btn-primary" id="confirmPasswordBtn">Salvar</button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        document.getElementById('cancelPasswordBtn').addEventListener('click', function () {
+          modal.remove();
+        });
+
+        document.getElementById('confirmPasswordBtn').addEventListener('click', function () {
+          const senhaAtual = document.getElementById('senhaAtualModal').value;
+          const novaSenha = document.getElementById('novaSenhaModal').value;
+
+          if (!senhaAtual || !novaSenha || novaSenha.length < 6) {
+            showToast('Informe a senha atual e uma nova senha válida.');
+            return;
+          }
+
+          google.script.run.withSuccessHandler(function (result) {
+            modal.remove();
+            if (!result || !result.sucesso) {
+              showToast(result && result.mensagem ? result.mensagem : 'Erro ao alterar senha.');
+              return;
+            }
+            showToast('Senha alterada com sucesso.');
+            renderApp();
+          }).alterarSenha(currentToken, senhaAtual, novaSenha);
+        });
+      }
+
+      function renderApp() {
+        document.getElementById('loginView').classList.add('hidden');
+        document.getElementById('appView').classList.remove('hidden');
+        document.getElementById('userBadge').textContent = currentUser.nome + ' • ' + currentUser.perfil;
+        loadDashboard();
+      }
+
+      function loadDashboard() {
+        google.script.run.withSuccessHandler(function (result) {
+          if (!result) {
+            showToast('Não foi possível carregar o dashboard.');
+            return;
+          }
+
+          const dashboard = result;
+          const stats = [
+            { label: 'Avisos', value: dashboard.avisos ? dashboard.avisos.length : 0 },
+            { label: 'Eventos', value: dashboard.eventos ? dashboard.eventos.length : 0 },
+            { label: 'Aniversariantes', value: dashboard.aniversariantes ? dashboard.aniversariantes.length : 0 },
+            { label: 'Colaboradores', value: dashboard.colaboradores || 0 }
+          ];
+
+          const statsHtml = stats.map(function (stat) {
+            return `
+              <div class="card stat-card">
+                <span class="stat-label">${stat.label}</span>
+                <div class="stat-value">${stat.value}</div>
+              </div>
+            `;
+          }).join('');
+
+          const dashboardHtml = `
+            <div class="alert-box">
+              Bem-vindo(a), <strong>${dashboard.usuario.nome}</strong> — você está acessando o painel de ${dashboard.usuario.perfil}.
+            </div>
+            <div class="stats-grid">${statsHtml}</div>
+            <div class="grid-2">
+              <div class="card panel">
+                <h2>Avisos recentes</h2>
+                <div class="list">
+                  ${(dashboard.avisos || []).length ? dashboard.avisos.slice(0, 4).map(function (item) {
+                    return `
+                      <div class="item">
+                        <strong>${item.titulo}</strong>
+                        <div>${item.texto}</div>
+                        <div class="meta">${item.data} • ${item.autor}</div>
+                      </div>
+                    `;
+                  }).join('') : '<div class="empty-state">Nenhum aviso encontrado.</div>'}
+                </div>
+              </div>
+
+              <div class="card panel">
+                <h2>Próximos eventos</h2>
+                <div class="list">
+                  ${(dashboard.eventos || []).length ? dashboard.eventos.slice(0, 4).map(function (item) {
+                    return `
+                      <div class="item">
+                        <strong>${item.titulo}</strong>
+                        <div>${item.data} • ${item.hora}</div>
+                        <div class="meta">Local: ${item.local}</div>
+                      </div>
+                    `;
+                  }).join('') : '<div class="empty-state">Nenhum evento cadastrado.</div>'}
+                </div>
+              </div>
+            </div>
+            <div class="grid-2" style="margin-top: 24px;">
+              <div class="card panel">
+                <h2>Aniversariantes do mês</h2>
+                <div class="list">
+                  ${(dashboard.aniversariantes || []).length ? dashboard.aniversariantes.slice(0, 6).map(function (item) {
+                    return `
+                      <div class="item">
+                        <strong>${item.nome}</strong>
+                        <div>${item.data} • ${item.cargo}</div>
+                      </div>
+                    `;
+                  }).join('') : '<div class="empty-state">Nenhum aniversário no mês.</div>'}
+                </div>
+              </div>
+
+              <div class="card panel">
+                <h2>Atalhos RH</h2>
+                <div class="forms">
+                  <div class="toolbar">
+                    <button class="btn-primary" onclick="setActiveSection('avisos')">Publicar aviso</button>
+                    <button class="btn-secondary" onclick="setActiveSection('eventos')">Adicionar evento</button>
+                  </div>
+                  <div class="toolbar">
+                    <button class="btn-secondary" onclick="setActiveSection('documentos')">Acompanhar documentos</button>
+                    <button class="btn-secondary" onclick="setActiveSection('colaboradores')">Gerenciar colaboradores</button>
+                  </div>
+                  <div class="toolbar">
+                    <button class="btn-secondary" onclick="setActiveSection('pesquisa')">Criar pesquisa</button>
+                    <button class="btn-secondary" onclick="setActiveSection('feedback')">Ver feedbacks</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+
+          document.getElementById('dashboardContent').innerHTML = dashboardHtml;
+          loadAvisos();
+          loadEventos();
+          loadDocumentos();
+          loadFeedbacks();
+          loadReconhecimentos();
+          loadPesquisas();
+          loadColaboradores();
+        }).carregarDashboard(currentToken);
+      }
+
+      function loadAvisos() {
+        google.script.run.withSuccessHandler(function (result) {
+          const html = `
+            <div class="toolbar">
+              <button class="btn-primary" id="addAvisoBtn">Publicar aviso</button>
+            </div>
+            <div id="addAvisoForm" class="hidden" style="margin-bottom: 20px;">
+              <div class="forms card" style="padding: 18px; border: 1px solid #e9e9e9;">
+                <div class="field">
+                  <label>Título</label>
+                  <input id="avisoTitulo" type="text" placeholder="Título do aviso" />
+                </div>
+                <div class="field">
+                  <label>Texto</label>
+                  <textarea id="avisoTexto" placeholder="Digite o conteúdo do aviso"></textarea>
+                </div>
+                <div class="field">
+                  <label>
+                    <input id="avisoImportante" type="checkbox" /> Aviso importante
+                  </label>
+                </div>
+                <div class="toolbar">
+                  <button class="btn-primary" id="saveAvisoBtn">Salvar aviso</button>
+                </div>
+              </div>
+            </div>
+            ${(result || []).length ? result.map(function (item) {
+              return `
+                <div class="item">
+                  <strong>${item.titulo}</strong>
+                  ${item.importante ? '<span class="badge">Importante</span>' : ''}
+                  <div>${item.texto}</div>
+                  <div class="meta">${item.data} • ${item.autor}</div>
+                </div>
+              `;
+            }).join('') : '<div class="empty-state">Nenhum aviso encontrado.</div>'}
+          `;
+
+          document.getElementById('avisosContent').innerHTML = html;
+
+          document.getElementById('addAvisoBtn').addEventListener('click', function () {
+            document.getElementById('addAvisoForm').classList.toggle('hidden');
+          });
+
+          document.getElementById('saveAvisoBtn').addEventListener('click', function () {
+            const titulo = document.getElementById('avisoTitulo').value.trim();
+            const texto = document.getElementById('avisoTexto').value.trim();
+            const importante = document.getElementById('avisoImportante').checked;
+
+            if (!titulo || !texto) {
+              showToast('Preencha título e texto do aviso.');
+              return;
+            }
+
+            google.script.run.withSuccessHandler(function (resp) {
+              showToast(resp && resp.mensagem ? resp.mensagem : 'Aviso salvo.');
+              loadDashboard();
+              loadAvisos();
+            }).criarAviso(currentToken, { titulo: titulo, texto: texto, importante: importante });
+          });
+        }).listarAvisos(currentToken);
+      }
+
+      function loadEventos() {
+        google.script.run.withSuccessHandler(function (result) {
+          const html = `
+            <div class="toolbar">
+              <button class="btn-primary" id="addEventoBtn">Criar evento</button>
+            </div>
+            <div id="addEventoForm" class="hidden" style="margin-bottom: 20px;">
+              <div class="forms card" style="padding: 18px; border: 1px solid #e9e9e9;">
+                <div class="field">
+                  <label>Título</label>
+                  <input id="eventoTitulo" type="text" placeholder="Título do evento" />
+                </div>
+                <div class="field">
+                  <label>Descrição</label>
+                  <textarea id="eventoDescricao" placeholder="Descrição"></textarea>
+                </div>
+                <div class="grid-2">
+                  <div class="field">
+                    <label>Data</label>
+                    <input id="eventoData" type="date" />
+                  </div>
+                  <div class="field">
+                    <label>Hora</label>
+                    <input id="eventoHora" type="time" />
+                  </div>
+                </div>
+                <div class="field">
+                  <label>Local</label>
+                  <input id="eventoLocal" type="text" placeholder="Local do evento" />
+                </div>
+                <div class="toolbar">
+                  <button class="btn-primary" id="saveEventoBtn">Salvar evento</button>
+                </div>
+              </div>
+            </div>
+            ${(result || []).length ? result.map(function (item) {
+              return `
+                <div class="item">
+                  <strong>${item.titulo}</strong>
+                  <div>${item.descricao}</div>
+                  <div class="meta">${item.data} • ${item.hora} • ${item.local}</div>
+                </div>
+              `;
+            }).join('') : '<div class="empty-state">Nenhum evento encontrado.</div>'}
+          `;
+
+          document.getElementById('eventosContent').innerHTML = html;
+
+          document.getElementById('addEventoBtn').addEventListener('click', function () {
+            document.getElementById('addEventoForm').classList.toggle('hidden');
+          });
+
+          document.getElementById('saveEventoBtn').addEventListener('click', function () {
+            const titulo = document.getElementById('eventoTitulo').value.trim();
+            const descricao = document.getElementById('eventoDescricao').value.trim();
+            const data = document.getElementById('eventoData').value;
+            const hora = document.getElementById('eventoHora').value;
+            const local = document.getElementById('eventoLocal').value.trim();
+
+            if (!titulo || !data) {
+              showToast('Preencha título e data do evento.');
+              return;
+            }
+
+            google.script.run.withSuccessHandler(function (resp) {
+              showToast(resp && resp.mensagem ? resp.mensagem : 'Evento salvo.');
+              loadDashboard();
+              loadEventos();
+            }).criarEvento(currentToken, { titulo: titulo, descricao: descricao, data: data, hora: hora, local: local });
+          });
+        }).listarEventos(currentToken);
+      }
+
+      function loadDocumentos() {
+        google.script.run.withSuccessHandler(function (result) {
+          const html = `
+            ${(currentUser.perfil === 'COLABORADOR' || currentUser.perfil === 'RH' || currentUser.perfil === 'ADMIN') ? `
+              <div class="toolbar">
+                <button class="btn-primary" id="newDocumentoBtn">Solicitar documento</button>
+              </div>
+              <div id="newDocumentoForm" class="hidden" style="margin-bottom: 20px;">
+                <div class="forms card" style="padding: 18px; border: 1px solid #e9e9e9;">
+                  <div class="field">
+                    <label>Tipo</label>
+                    <select id="docTipo">
+                      <option value="Holerite">Holerite</option>
+                      <option value="Declaracao de Trabalho">Declaração de Trabalho</option>
+                      <option value="IR">IR</option>
+                      <option value="Outro">Outro</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label>Descrição</label>
+                    <textarea id="docDescricao" placeholder="Descreva a necessidade"></textarea>
+                  </div>
+                  <div class="toolbar">
+                    <button class="btn-primary" id="saveDocumentoBtn">Enviar solicitação</button>
+                  </div>
+                </div>
+              </div>
+            ` : ''}
+            ${(result || []).length ? result.map(function (item) {
+              return `
+                <div class="item">
+                  <strong>${item.tipo}</strong>
+                  <div>${item.descricao}</div>
+                  <div class="meta">Solicitante: ${item.nome} • Status: ${item.status}</div>
+                  ${item.respostaRH ? `<div class="meta">Resposta: ${item.respostaRH}</div>` : ''}
+                  ${item.linkDocumento ? `<div class="meta"><a href="${item.linkDocumento}" target="_blank">Abrir documento</a></div>` : ''}
+                </div>
+              `;
+            }).join('') : '<div class="empty-state">Nenhuma solicitação de documento.</div>'}
+          `;
+
+          document.getElementById('documentosContent').innerHTML = html;
+
+          const newDocumentoBtn = document.getElementById('newDocumentoBtn');
+          if (newDocumentoBtn) {
+            newDocumentoBtn.addEventListener('click', function () {
+              document.getElementById('newDocumentoForm').classList.toggle('hidden');
+            });
+          }
+
+          const saveDocumentoBtn = document.getElementById('saveDocumentoBtn');
+          if (saveDocumentoBtn) {
+            saveDocumentoBtn.addEventListener('click', function () {
+              const tipo = document.getElementById('docTipo').value;
+              const descricao = document.getElementById('docDescricao').value.trim();
+              if (!descricao) {
+                showToast('Descreva o motivo da solicitação.');
+                return;
+              }
+
+              google.script.run.withSuccessHandler(function (resp) {
+                showToast(resp && resp.mensagem ? resp.mensagem : 'Solicitação enviada.');
+                loadDocumentos();
+                loadDashboard();
+              }).solicitarDocumento(currentToken, { tipo: tipo, descricao: descricao });
+            });
+          }
+        }).listarDocumentos(currentToken);
+      }
+
+      function loadFeedbacks() {
+        const perfil = currentUser && currentUser.perfil;
+        const isRH = perfil === 'RH' || perfil === 'ADMIN';
+
+        if (!isRH) {
+          document.getElementById('feedbackContent').innerHTML = `
+            <div class="forms">
+              <div class="field">
+                <label>Tipo</label>
+                <select id="feedbackTipo">
+                  <option value="Sugestao">Sugestão</option>
+                  <option value="Elogio">Elogio</option>
+                  <option value="Reclamacao">Reclamação</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Mensagem</label>
+                <textarea id="feedbackMensagem" placeholder="Conte sua experiência..."></textarea>
+              </div>
+              <button class="btn-primary" id="sendFeedbackBtn">Enviar feedback</button>
+            </div>
+          `;
+
+          document.getElementById('sendFeedbackBtn').addEventListener('click', function () {
+            const tipo = document.getElementById('feedbackTipo').value;
+            const mensagem = document.getElementById('feedbackMensagem').value.trim();
+
+            if (!mensagem) {
+              showToast('Escreva sua mensagem.');
+              return;
+            }
+
+            google.script.run.withSuccessHandler(function (resp) {
+              showToast(resp && resp.mensagem ? resp.mensagem : 'Feedback enviado.');
+              loadFeedbacks();
+            }).enviarFeedback(currentToken, { tipo: tipo, mensagem: mensagem });
+          });
+          return;
+        }
+
+        google.script.run.withSuccessHandler(function (result) {
+          document.getElementById('feedbackContent').innerHTML = `
+            ${(result || []).length ? result.map(function (item) {
+              return `
+                <div class="item">
+                  <strong>${item.tipo}</strong>
+                  <div>${item.mensagem}</div>
+                  <div class="meta">${item.nome} • ${item.data}</div>
+                </div>
+              `;
+            }).join('') : '<div class="empty-state">Nenhum feedback encontrado.</div>'}
+          `;
+        }).listarFeedbacks(currentToken);
+      }
+
+      function loadReconhecimentos() {
+        google.script.run.withSuccessHandler(function (result) {
+          const html = `
+            <div class="toolbar">
+              <button class="btn-primary" id="addReconhecimentoBtn">Enviar reconhecimento</button>
+            </div>
+            <div id="reconhecimentoForm" class="hidden" style="margin-bottom: 20px;">
+              <div class="forms card" style="padding: 18px; border: 1px solid #e9e9e9;">
+                <div class="field">
+                  <label>CPF da pessoa</label>
+                  <input id="reconhecimentoCPF" type="text" placeholder="CPF" maxlength="11" />
+                </div>
+                <div class="field">
+                  <label>Nome da pessoa</label>
+                  <input id="reconhecimentoNome" type="text" placeholder="Nome" />
+                </div>
+                <div class="field">
+                  <label>Mensagem</label>
+                  <textarea id="reconhecimentoTexto" placeholder="Escreva o reconhecimento"></textarea>
+                </div>
+                <div class="toolbar">
+                  <button class="btn-primary" id="saveReconhecimentoBtn">Salvar</button>
+                </div>
+              </div>
+            </div>
+            ${(result || []).length ? result.map(function (item) {
+              return `
+                <div class="item">
+                  <strong>${item.para}</strong>
+                  <div>${item.mensagem}</div>
+                  <div class="meta">De: ${item.de} • ${item.data}</div>
+                </div>
+              `;
+            }).join('') : '<div class="empty-state">Nenhum reconhecimento registrado.</div>'}
+          `;
+
+          document.getElementById('reconhecimentoContent').innerHTML = html;
+
+          document.getElementById('addReconhecimentoBtn').addEventListener('click', function () {
+            document.getElementById('reconhecimentoForm').classList.toggle('hidden');
+          });
+
+          document.getElementById('saveReconhecimentoBtn').addEventListener('click', function () {
+            const cpf = normalizeCPF(document.getElementById('reconhecimentoCPF').value);
+            const nome = document.getElementById('reconhecimentoNome').value.trim();
+            const mensagem = document.getElementById('reconhecimentoTexto').value.trim();
+
+            if (!cpf || !nome || !mensagem) {
+              showToast('Preencha CPF, nome e mensagem.');
+              return;
+            }
+
+            google.script.run.withSuccessHandler(function (resp) {
+              showToast(resp && resp.mensagem ? resp.mensagem : 'Reconhecimento enviado.');
+              loadReconhecimentos();
+            }).criarReconhecimento(currentToken, { paraCPF: cpf, paraNome: nome, mensagem: mensagem });
+          });
+        }).listarReconhecimentos(currentToken);
+      }
+
+      function loadPesquisas() {
+        google.script.run.withSuccessHandler(function (result) {
+          const isRH = currentUser.perfil === 'RH' || currentUser.perfil === 'ADMIN';
+          const html = `
+            ${isRH ? `
+              <div class="toolbar">
+                <button class="btn-primary" id="newPesquisaBtn">Criar pesquisa</button>
+              </div>
+              <div id="newPesquisaForm" class="hidden" style="margin-bottom: 20px;">
+                <div class="forms card" style="padding: 18px; border: 1px solid #e9e9e9;">
+                  <div class="field">
+                    <label>Pergunta</label>
+                    <input id="pesquisaPergunta" type="text" placeholder="Pergunta da pesquisa" />
+                  </div>
+                  <div class="field">
+                    <label>Opção 1</label>
+                    <input id="pesquisaOpcao1" type="text" placeholder="Opção 1" />
+                  </div>
+                  <div class="field">
+                    <label>Opção 2</label>
+                    <input id="pesquisaOpcao2" type="text" placeholder="Opção 2" />
+                  </div>
+                  <div class="field">
+                    <label>Opção 3</label>
+                    <input id="pesquisaOpcao3" type="text" placeholder="Opção 3" />
+                  </div>
+                  <div class="field">
+                    <label>Opção 4</label>
+                    <input id="pesquisaOpcao4" type="text" placeholder="Opção 4" />
+                  </div>
+                  <div class="toolbar">
+                    <button class="btn-primary" id="savePesquisaBtn">Salvar pesquisa</button>
+                  </div>
+                </div>
+              </div>
+            ` : ''}
+            ${(result || []).length ? result.map(function (item) {
+              return `
+                <div class="item">
+                  <strong>${item.pergunta}</strong>
+                  <div>1) ${item.opcao1}</div>
+                  <div>2) ${item.opcao2}</div>
+                  <div>3) ${item.opcao3}</div>
+                  <div>4) ${item.opcao4}</div>
+                  <div class="meta">${item.data}</div>
+                  ${!isRH ? `<div style="margin-top: 12px;"><button class="btn-small" data-resposta="${item.opcao1}" data-pesquisa="${item.id}">Responder: ${item.opcao1}</button>
+                  <button class="btn-small" data-resposta="${item.opcao2}" data-pesquisa="${item.id}">Responder: ${item.opcao2}</button>
+                  <button class="btn-small" data-resposta="${item.opcao3}" data-pesquisa="${item.id}">Responder: ${item.opcao3}</button>
+                  <button class="btn-small" data-resposta="${item.opcao4}" data-pesquisa="${item.id}">Responder: ${item.opcao4}</button></div>` : ''}
+                </div>
+              `;
+            }).join('') : '<div class="empty-state">Nenhuma pesquisa disponível.</div>'}
+          `;
+
+          document.getElementById('pesquisaContent').innerHTML = html;
+
+          const newPesquisaBtn = document.getElementById('newPesquisaBtn');
+          if (newPesquisaBtn) {
+            newPesquisaBtn.addEventListener('click', function () {
+              document.getElementById('newPesquisaForm').classList.toggle('hidden');
+            });
+          }
+
+          const savePesquisaBtn = document.getElementById('savePesquisaBtn');
+          if (savePesquisaBtn) {
+            savePesquisaBtn.addEventListener('click', function () {
+              const pergunta = document.getElementById('pesquisaPergunta').value.trim();
+              const opcao1 = document.getElementById('pesquisaOpcao1').value.trim();
+              const opcao2 = document.getElementById('pesquisaOpcao2').value.trim();
+              const opcao3 = document.getElementById('pesquisaOpcao3').value.trim();
+              const opcao4 = document.getElementById('pesquisaOpcao4').value.trim();
+
+              if (!pergunta || !opcao1 || !opcao2 || !opcao3 || !opcao4) {
+                showToast('Preencha todas as opções da pesquisa.');
+                return;
+              }
+
+              google.script.run.withSuccessHandler(function (resp) {
+                showToast(resp && resp.mensagem ? resp.mensagem : 'Pesquisa salva.');
+                loadPesquisas();
+              }).criarPesquisa(currentToken, {
+                pergunta: pergunta,
+                opcao1: opcao1,
+                opcao2: opcao2,
+                opcao3: opcao3,
+                opcao4: opcao4
+              });
+            });
+          }
+
+          document.querySelectorAll('[data-pesquisa]').forEach(function (button) {
+            button.addEventListener('click', function () {
+              const pesquisaID = button.dataset.pesquisa;
+              const resposta = button.dataset.resposta;
+
+              google.script.run.withSuccessHandler(function (resp) {
+                showToast(resp && resp.mensagem ? resp.mensagem : 'Resposta registrada.');
+                loadPesquisas();
+              }).responderPesquisa(currentToken, pesquisaID, resposta);
+            });
+          });
+        }).listarPesquisas(currentToken);
+      }
+
+      function loadColaboradores() {
+        const isRH = currentUser.perfil === 'RH' || currentUser.perfil === 'ADMIN';
+
+        if (!isRH) {
+          document.getElementById('colaboradoresContent').innerHTML = '<div class="empty-state">Você não possui acesso à gestão de colaboradores.</div>';
+          return;
+        }
+
+        const html = `
+          <div class="toolbar">
+            <button class="btn-primary" id="addColaboradorBtn">Cadastrar colaborador</button>
+          </div>
+          <div id="addColaboradorForm" class="hidden" style="margin-bottom: 20px;">
+            <div class="forms card" style="padding: 18px; border: 1px solid #e9e9e9;">
+              <div class="grid-2">
+                <div class="field">
+                  <label>CPF</label>
+                  <input id="colabCpf" type="text" maxlength="11" placeholder="CPF" />
+                </div>
+                <div class="field">
+                  <label>Nome</label>
+                  <input id="colabNome" type="text" placeholder="Nome do colaborador" />
+                </div>
+              </div>
+              <div class="grid-2">
+                <div class="field">
+                  <label>Nascimento</label>
+                  <input id="colabNascimento" type="date" />
+                </div>
+                <div class="field">
+                  <label>Cargo</label>
+                  <input id="colabCargo" type="text" placeholder="Cargo" />
+                </div>
+              </div>
+              <div class="grid-2">
+                <div class="field">
+                  <label>Setor</label>
+                  <input id="colabSetor" type="text" placeholder="Setor" />
+                </div>
+                <div class="field">
+                  <label>Telefone</label>
+                  <input id="colabTelefone" type="text" placeholder="Telefone" />
+                </div>
+              </div>
+              <div class="field">
+                <label>Email</label>
+                <input id="colabEmail" type="email" placeholder="Email" />
+              </div>
+              <div class="toolbar">
+                <button class="btn-primary" id="saveColaboradorBtn">Salvar colaborador</button>
+              </div>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>CPF</th>
+                  <th>Cargo</th>
+                  <th>Setor</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${resultRows()}
+              </tbody>
+            </table>
+          </div>
+        `;
+
+        function resultRows() {
+          google.script.run.withSuccessHandler(function (result) {
+            const tableBody = result && result.length ? result.map(function (item) {
+              return `
+                <tr>
+                  <td>${item.nome}</td>
+                  <td>${item.cpf}</td>
+                  <td>${item.cargo}</td>
+                  <td>${item.setor}</td>
+                  <td>${item.ativo ? 'Ativo' : 'Inativo'}</td>
+                </tr>
+              `;
+            }).join('') : '<tr><td colspan="5">Nenhum colaborador cadastrado.</td></tr>';
+
+            document.getElementById('colaboradoresContent').innerHTML = html.replace('${resultRows()}', tableBody);
+
+            const addColaboradorBtn = document.getElementById('addColaboradorBtn');
+            if (addColaboradorBtn) {
+              addColaboradorBtn.addEventListener('click', function () {
+                document.getElementById('addColaboradorForm').classList.toggle('hidden');
+              });
+            }
+
+            const saveColaboradorBtn = document.getElementById('saveColaboradorBtn');
+            if (saveColaboradorBtn) {
+              saveColaboradorBtn.addEventListener('click', function () {
+                const cpf = normalizeCPF(document.getElementById('colabCpf').value);
+                const nome = document.getElementById('colabNome').value.trim();
+                const nascimento = document.getElementById('colabNascimento').value;
+                const cargo = document.getElementById('colabCargo').value.trim();
+                const setor = document.getElementById('colabSetor').value.trim();
+                const telefone = document.getElementById('colabTelefone').value.trim();
+                const email = document.getElementById('colabEmail').value.trim();
+
+                if (!cpf || !nome) {
+                  showToast('Informe CPF e nome do colaborador.');
+                  return;
+                }
+
+                google.script.run.withSuccessHandler(function (resp) {
+                  showToast(resp && resp.mensagem ? resp.mensagem : 'Colaborador cadastrado.');
+                  loadColaboradores();
+                  loadDashboard();
+                }).criarColaborador(currentToken, {
+                  cpf: cpf,
+                  nome: nome,
+                  nascimento: nascimento,
+                  cargo: cargo,
+                  setor: setor,
+                  telefone: telefone,
+                  email: email,
+                  lojaID: currentUser.lojaID
+                });
+              });
+            }
+          }).listarColaboradores(currentToken);
+        }
+      }
+
+      function init() {
+        const token = localStorage.getItem(SESSION_KEY);
+        if (!token) {
+          document.getElementById('loginView').classList.remove('hidden');
+          document.getElementById('appView').classList.add('hidden');
+          return;
+        }
+
+        currentToken = token;
+        google.script.run.withSuccessHandler(function (result) {
+          if (!result) {
+            showToast('Sessão inválida. Faça login novamente.');
+            localStorage.removeItem(SESSION_KEY);
+            document.getElementById('loginView').classList.remove('hidden');
+            document.getElementById('appView').classList.add('hidden');
+            return;
+          }
+
+          currentUser = result.usuario || result;
+          renderApp();
+        }).obterSessao(token);
+      }
+
+      init();
+    </script>
+  </body>
+</html>
