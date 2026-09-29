@@ -406,6 +406,36 @@
         background: #fff;
       }
 
+      .rating-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin: 12px 0;
+      }
+
+      .rating-btn {
+        width: 50px;
+        height: 50px;
+        border: 2px solid var(--gray-300);
+        background: white;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 700;
+        font-size: 1rem;
+        transition: 0.2s ease;
+      }
+
+      .rating-btn:hover {
+        border-color: var(--red-500);
+        background: var(--red-50);
+      }
+
+      .rating-btn.selected {
+        background: var(--red-600);
+        color: white;
+        border-color: var(--red-600);
+      }
+
       @media (max-width: 900px) {
         .layout {
           grid-template-columns: 1fr;
@@ -511,7 +541,7 @@
 
           <section id="pesquisaSection" class="page-section hidden">
             <div class="card panel">
-              <h2>Pesquisa de clima</h2>
+              <h2>Pesquisa de Clima</h2>
               <div id="pesquisaContent"></div>
             </div>
           </section>
@@ -532,6 +562,7 @@
       const SESSION_KEY = 'conectarhToken';
       let currentUser = null;
       let currentToken = null;
+      let notasSelecionadas = {};
 
       document.getElementById('loginBtn').addEventListener('click', doLogin);
       document.getElementById('logoutBtn').addEventListener('click', doLogout);
@@ -712,6 +743,7 @@
                     return `
                       <div class="item">
                         <strong>${item.titulo}</strong>
+                        ${item.importante ? '<span class="badge">Importante</span>' : ''}
                         <div>${item.texto}</div>
                         <div class="meta">${item.data} • ${item.autor}</div>
                       </div>
@@ -753,18 +785,20 @@
               <div class="card panel">
                 <h2>Atalhos RH</h2>
                 <div class="forms">
-                  <div class="toolbar">
-                    <button class="btn-primary" onclick="setActiveSection('avisos')">Publicar aviso</button>
-                    <button class="btn-secondary" onclick="setActiveSection('eventos')">Adicionar evento</button>
-                  </div>
-                  <div class="toolbar">
-                    <button class="btn-secondary" onclick="setActiveSection('documentos')">Acompanhar documentos</button>
-                    <button class="btn-secondary" onclick="setActiveSection('colaboradores')">Gerenciar colaboradores</button>
-                  </div>
-                  <div class="toolbar">
-                    <button class="btn-secondary" onclick="setActiveSection('pesquisa')">Criar pesquisa</button>
-                    <button class="btn-secondary" onclick="setActiveSection('feedback')">Ver feedbacks</button>
-                  </div>
+                  ${currentUser.perfil === 'RH' || currentUser.perfil === 'ADMIN' ? `
+                    <div class="toolbar">
+                      <button class="btn-primary" onclick="setActiveSection('avisos')">Publicar aviso</button>
+                      <button class="btn-secondary" onclick="setActiveSection('eventos')">Adicionar evento</button>
+                    </div>
+                    <div class="toolbar">
+                      <button class="btn-secondary" onclick="setActiveSection('documentos')">Acompanhar documentos</button>
+                      <button class="btn-secondary" onclick="setActiveSection('colaboradores')">Gerenciar colaboradores</button>
+                    </div>
+                    <div class="toolbar">
+                      <button class="btn-secondary" onclick="setActiveSection('pesquisa')">Pesquisas de clima</button>
+                      <button class="btn-secondary" onclick="setActiveSection('feedback')">Ver feedbacks</button>
+                    </div>
+                  ` : ''}
                 </div>
               </div>
             </div>
@@ -783,30 +817,33 @@
 
       function loadAvisos() {
         google.script.run.withSuccessHandler(function (result) {
+          const isRH = currentUser.perfil === 'RH' || currentUser.perfil === 'ADMIN';
           const html = `
-            <div class="toolbar">
-              <button class="btn-primary" id="addAvisoBtn">Publicar aviso</button>
-            </div>
-            <div id="addAvisoForm" class="hidden" style="margin-bottom: 20px;">
-              <div class="forms card" style="padding: 18px; border: 1px solid #e9e9e9;">
-                <div class="field">
-                  <label>Título</label>
-                  <input id="avisoTitulo" type="text" placeholder="Título do aviso" />
-                </div>
-                <div class="field">
-                  <label>Texto</label>
-                  <textarea id="avisoTexto" placeholder="Digite o conteúdo do aviso"></textarea>
-                </div>
-                <div class="field">
-                  <label>
-                    <input id="avisoImportante" type="checkbox" /> Aviso importante
-                  </label>
-                </div>
-                <div class="toolbar">
-                  <button class="btn-primary" id="saveAvisoBtn">Salvar aviso</button>
+            ${isRH ? `
+              <div class="toolbar">
+                <button class="btn-primary" id="addAvisoBtn">Publicar aviso</button>
+              </div>
+              <div id="addAvisoForm" class="hidden" style="margin-bottom: 20px;">
+                <div class="forms card" style="padding: 18px; border: 1px solid #e9e9e9;">
+                  <div class="field">
+                    <label>Título</label>
+                    <input id="avisoTitulo" type="text" placeholder="Título do aviso" />
+                  </div>
+                  <div class="field">
+                    <label>Texto</label>
+                    <textarea id="avisoTexto" placeholder="Digite o conteúdo do aviso"></textarea>
+                  </div>
+                  <div class="field">
+                    <label>
+                      <input id="avisoImportante" type="checkbox" /> Aviso importante
+                    </label>
+                  </div>
+                  <div class="toolbar">
+                    <button class="btn-primary" id="saveAvisoBtn">Salvar aviso</button>
+                  </div>
                 </div>
               </div>
-            </div>
+            ` : ''}
             ${(result || []).length ? result.map(function (item) {
               return `
                 <div class="item">
@@ -821,64 +858,75 @@
 
           document.getElementById('avisosContent').innerHTML = html;
 
-          document.getElementById('addAvisoBtn').addEventListener('click', function () {
-            document.getElementById('addAvisoForm').classList.toggle('hidden');
-          });
-
-          document.getElementById('saveAvisoBtn').addEventListener('click', function () {
-            const titulo = document.getElementById('avisoTitulo').value.trim();
-            const texto = document.getElementById('avisoTexto').value.trim();
-            const importante = document.getElementById('avisoImportante').checked;
-
-            if (!titulo || !texto) {
-              showToast('Preencha título e texto do aviso.');
-              return;
+          if (isRH) {
+            const addAvisoBtn = document.getElementById('addAvisoBtn');
+            if (addAvisoBtn) {
+              addAvisoBtn.addEventListener('click', function () {
+                document.getElementById('addAvisoForm').classList.toggle('hidden');
+              });
             }
 
-            google.script.run.withSuccessHandler(function (resp) {
-              showToast(resp && resp.mensagem ? resp.mensagem : 'Aviso salvo.');
-              loadDashboard();
-              loadAvisos();
-            }).criarAviso(currentToken, { titulo: titulo, texto: texto, importante: importante });
-          });
+            const saveAvisoBtn = document.getElementById('saveAvisoBtn');
+            if (saveAvisoBtn) {
+              saveAvisoBtn.addEventListener('click', function () {
+                const titulo = document.getElementById('avisoTitulo').value.trim();
+                const texto = document.getElementById('avisoTexto').value.trim();
+                const importante = document.getElementById('avisoImportante').checked;
+
+                if (!titulo || !texto) {
+                  showToast('Preencha título e texto do aviso.');
+                  return;
+                }
+
+                google.script.run.withSuccessHandler(function (resp) {
+                  showToast(resp && resp.mensagem ? resp.mensagem : 'Aviso salvo.');
+                  loadDashboard();
+                  loadAvisos();
+                }).criarAviso(currentToken, { titulo: titulo, texto: texto, importante: importante });
+              });
+            }
+          }
         }).listarAvisos(currentToken);
       }
 
       function loadEventos() {
         google.script.run.withSuccessHandler(function (result) {
+          const isRH = currentUser.perfil === 'RH' || currentUser.perfil === 'ADMIN';
           const html = `
-            <div class="toolbar">
-              <button class="btn-primary" id="addEventoBtn">Criar evento</button>
-            </div>
-            <div id="addEventoForm" class="hidden" style="margin-bottom: 20px;">
-              <div class="forms card" style="padding: 18px; border: 1px solid #e9e9e9;">
-                <div class="field">
-                  <label>Título</label>
-                  <input id="eventoTitulo" type="text" placeholder="Título do evento" />
-                </div>
-                <div class="field">
-                  <label>Descrição</label>
-                  <textarea id="eventoDescricao" placeholder="Descrição"></textarea>
-                </div>
-                <div class="grid-2">
+            ${isRH ? `
+              <div class="toolbar">
+                <button class="btn-primary" id="addEventoBtn">Criar evento</button>
+              </div>
+              <div id="addEventoForm" class="hidden" style="margin-bottom: 20px;">
+                <div class="forms card" style="padding: 18px; border: 1px solid #e9e9e9;">
                   <div class="field">
-                    <label>Data</label>
-                    <input id="eventoData" type="date" />
+                    <label>Título</label>
+                    <input id="eventoTitulo" type="text" placeholder="Título do evento" />
                   </div>
                   <div class="field">
-                    <label>Hora</label>
-                    <input id="eventoHora" type="time" />
+                    <label>Descrição</label>
+                    <textarea id="eventoDescricao" placeholder="Descrição"></textarea>
                   </div>
-                </div>
-                <div class="field">
-                  <label>Local</label>
-                  <input id="eventoLocal" type="text" placeholder="Local do evento" />
-                </div>
-                <div class="toolbar">
-                  <button class="btn-primary" id="saveEventoBtn">Salvar evento</button>
+                  <div class="grid-2">
+                    <div class="field">
+                      <label>Data</label>
+                      <input id="eventoData" type="date" />
+                    </div>
+                    <div class="field">
+                      <label>Hora</label>
+                      <input id="eventoHora" type="time" />
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label>Local</label>
+                    <input id="eventoLocal" type="text" placeholder="Local do evento" />
+                  </div>
+                  <div class="toolbar">
+                    <button class="btn-primary" id="saveEventoBtn">Salvar evento</button>
+                  </div>
                 </div>
               </div>
-            </div>
+            ` : ''}
             ${(result || []).length ? result.map(function (item) {
               return `
                 <div class="item">
@@ -892,28 +940,36 @@
 
           document.getElementById('eventosContent').innerHTML = html;
 
-          document.getElementById('addEventoBtn').addEventListener('click', function () {
-            document.getElementById('addEventoForm').classList.toggle('hidden');
-          });
-
-          document.getElementById('saveEventoBtn').addEventListener('click', function () {
-            const titulo = document.getElementById('eventoTitulo').value.trim();
-            const descricao = document.getElementById('eventoDescricao').value.trim();
-            const data = document.getElementById('eventoData').value;
-            const hora = document.getElementById('eventoHora').value;
-            const local = document.getElementById('eventoLocal').value.trim();
-
-            if (!titulo || !data) {
-              showToast('Preencha título e data do evento.');
-              return;
+          if (isRH) {
+            const addEventoBtn = document.getElementById('addEventoBtn');
+            if (addEventoBtn) {
+              addEventoBtn.addEventListener('click', function () {
+                document.getElementById('addEventoForm').classList.toggle('hidden');
+              });
             }
 
-            google.script.run.withSuccessHandler(function (resp) {
-              showToast(resp && resp.mensagem ? resp.mensagem : 'Evento salvo.');
-              loadDashboard();
-              loadEventos();
-            }).criarEvento(currentToken, { titulo: titulo, descricao: descricao, data: data, hora: hora, local: local });
-          });
+            const saveEventoBtn = document.getElementById('saveEventoBtn');
+            if (saveEventoBtn) {
+              saveEventoBtn.addEventListener('click', function () {
+                const titulo = document.getElementById('eventoTitulo').value.trim();
+                const descricao = document.getElementById('eventoDescricao').value.trim();
+                const data = document.getElementById('eventoData').value;
+                const hora = document.getElementById('eventoHora').value;
+                const local = document.getElementById('eventoLocal').value.trim();
+
+                if (!titulo || !data) {
+                  showToast('Preencha título e data do evento.');
+                  return;
+                }
+
+                google.script.run.withSuccessHandler(function (resp) {
+                  showToast(resp && resp.mensagem ? resp.mensagem : 'Evento salvo.');
+                  loadDashboard();
+                  loadEventos();
+                }).criarEvento(currentToken, { titulo: titulo, descricao: descricao, data: data, hora: hora, local: local });
+              });
+            }
+          }
         }).listarEventos(currentToken);
       }
 
@@ -988,378 +1044,320 @@
       }
 
       function loadFeedbacks() {
-        const perfil = currentUser && currentUser.perfil;
-        const isRH = perfil === 'RH' || perfil === 'ADMIN';
+        const isRH = currentUser.perfil === 'RH' || currentUser.perfil === 'ADMIN';
 
-        if (!isRH) {
-          document.getElementById('feedbackContent').innerHTML = `
-            <div class="forms">
-              <div class="field">
-                <label>Tipo</label>
-                <select id="feedbackTipo">
-                  <option value="Sugestao">Sugestão</option>
-                  <option value="Elogio">Elogio</option>
-                  <option value="Reclamacao">Reclamação</option>
-                </select>
+        if (isRH) {
+          google.script.run.withSuccessHandler(function (result) {
+            const html = `
+              <div class="list">
+                ${(result || []).length ? result.map(function (item) {
+                  return `
+                    <div class="item">
+                      <strong>${item.nome}</strong>
+                      <div><strong>Tipo:</strong> ${item.tipo}</div>
+                      <div>${item.mensagem}</div>
+                      <div class="meta">${item.data}</div>
+                      ${!item.publicado ? `
+                        <div class="toolbar" style="margin-top: 10px;">
+                          <button class="btn-primary" onclick="publicarFeedback('${item.id}')">Publicar</button>
+                          <button class="btn-secondary" onclick="marcarFeedbackLido('${item.id}')">Marcar como lido</button>
+                        </div>
+                      ` : '<span class="badge">Publicado</span>'}
+                    </div>
+                  `;
+                }).join('') : '<div class="empty-state">Nenhum feedback.</div>'}
               </div>
-              <div class="field">
-                <label>Mensagem</label>
-                <textarea id="feedbackMensagem" placeholder="Conte sua experiência..."></textarea>
-              </div>
-              <button class="btn-primary" id="sendFeedbackBtn">Enviar feedback</button>
+            `;
+            document.getElementById('feedbackContent').innerHTML = html;
+          }).listarFeedbacks(currentToken);
+        } else {
+          const html = `
+            <div class="toolbar">
+              <button class="btn-primary" id="newFeedbackBtn">Enviar feedback</button>
             </div>
-          `;
-
-          document.getElementById('sendFeedbackBtn').addEventListener('click', function () {
-            const tipo = document.getElementById('feedbackTipo').value;
-            const mensagem = document.getElementById('feedbackMensagem').value.trim();
-
-            if (!mensagem) {
-              showToast('Escreva sua mensagem.');
-              return;
-            }
-
-            google.script.run.withSuccessHandler(function (resp) {
-              showToast(resp && resp.mensagem ? resp.mensagem : 'Feedback enviado.');
-              loadFeedbacks();
-            }).enviarFeedback(currentToken, { tipo: tipo, mensagem: mensagem });
-          });
-          return;
-        }
-
-        google.script.run.withSuccessHandler(function (result) {
-          document.getElementById('feedbackContent').innerHTML = `
-            ${(result || []).length ? result.map(function (item) {
-              return `
-                <div class="item">
-                  <strong>${item.tipo}</strong>
-                  <div>${item.mensagem}</div>
-                  <div class="meta">${item.nome} • ${item.data}</div>
+            <div id="newFeedbackForm" class="hidden" style="margin-bottom: 20px;">
+              <div class="forms card" style="padding: 18px; border: 1px solid #e9e9e9;">
+                <div class="field">
+                  <label>Tipo</label>
+                  <select id="feedbackTipo">
+                    <option value="Sugestao">Sugestão</option>
+                    <option value="Reclamacao">Reclamação</option>
+                    <option value="Elogio">Elogio</option>
+                    <option value="Duvida">Dúvida</option>
+                  </select>
                 </div>
-              `;
-            }).join('') : '<div class="empty-state">Nenhum feedback encontrado.</div>'}
+                <div class="field">
+                  <label>Mensagem</label>
+                  <textarea id="feedbackMsg" placeholder="Digite sua mensagem"></textarea>
+                </div>
+                <div class="toolbar">
+                  <button class="btn-primary" id="saveFeedbackBtn">Enviar</button>
+                </div>
+              </div>
+            </div>
+            <div class="empty-state">Seus feedbacks são enviados de forma privada ao RH.</div>
           `;
-        }).listarFeedbacks(currentToken);
+          document.getElementById('feedbackContent').innerHTML = html;
+
+          const newFeedbackBtn = document.getElementById('newFeedbackBtn');
+          if (newFeedbackBtn) {
+            newFeedbackBtn.addEventListener('click', function () {
+              document.getElementById('newFeedbackForm').classList.toggle('hidden');
+            });
+          }
+
+          const saveFeedbackBtn = document.getElementById('saveFeedbackBtn');
+          if (saveFeedbackBtn) {
+            saveFeedbackBtn.addEventListener('click', function () {
+              const tipo = document.getElementById('feedbackTipo').value;
+              const mensagem = document.getElementById('feedbackMsg').value.trim();
+
+              if (!mensagem) {
+                showToast('Digite sua mensagem.');
+                return;
+              }
+
+              google.script.run.withSuccessHandler(function (resp) {
+                showToast(resp && resp.mensagem ? resp.mensagem : 'Feedback enviado.');
+                document.getElementById('feedbackMsg').value = '';
+                document.getElementById('newFeedbackForm').classList.add('hidden');
+              }).enviarFeedback(currentToken, { tipo: tipo, mensagem: mensagem });
+            });
+          }
+        }
+      }
+
+      function publicarFeedback(feedbackID) {
+        google.script.run.withSuccessHandler(function (resp) {
+          showToast(resp && resp.mensagem ? resp.mensagem : 'Feedback publicado.');
+          loadFeedbacks();
+        }).publicarFeedback(currentToken, feedbackID);
+      }
+
+      function marcarFeedbackLido(feedbackID) {
+        google.script.run.withSuccessHandler(function (resp) {
+          showToast(resp && resp.mensagem ? resp.mensagem : 'Feedback marcado como lido.');
+          loadFeedbacks();
+        }).marcarFeedbackLido(currentToken, feedbackID);
       }
 
       function loadReconhecimentos() {
         google.script.run.withSuccessHandler(function (result) {
           const html = `
             <div class="toolbar">
-              <button class="btn-primary" id="addReconhecimentoBtn">Enviar reconhecimento</button>
+              <button class="btn-primary" id="newReconhecimentoBtn">Reconhecer colaborador</button>
             </div>
-            <div id="reconhecimentoForm" class="hidden" style="margin-bottom: 20px;">
+            <div id="newReconhecimentoForm" class="hidden" style="margin-bottom: 20px;">
               <div class="forms card" style="padding: 18px; border: 1px solid #e9e9e9;">
                 <div class="field">
-                  <label>CPF da pessoa</label>
-                  <input id="reconhecimentoCPF" type="text" placeholder="CPF" maxlength="11" />
-                </div>
-                <div class="field">
-                  <label>Nome da pessoa</label>
-                  <input id="reconhecimentoNome" type="text" placeholder="Nome" />
+                  <label>Para quem?</label>
+                  <input id="reconhecimentoPara" type="text" placeholder="Nome do colaborador" />
                 </div>
                 <div class="field">
                   <label>Mensagem</label>
-                  <textarea id="reconhecimentoTexto" placeholder="Escreva o reconhecimento"></textarea>
+                  <textarea id="reconhecimentoMsg" placeholder="Conte o que você gostou"></textarea>
                 </div>
                 <div class="toolbar">
-                  <button class="btn-primary" id="saveReconhecimentoBtn">Salvar</button>
+                  <button class="btn-primary" id="saveReconhecimentoBtn">Enviar</button>
                 </div>
               </div>
             </div>
-            ${(result || []).length ? result.map(function (item) {
-              return `
-                <div class="item">
-                  <strong>${item.para}</strong>
-                  <div>${item.mensagem}</div>
-                  <div class="meta">De: ${item.de} • ${item.data}</div>
-                </div>
-              `;
-            }).join('') : '<div class="empty-state">Nenhum reconhecimento registrado.</div>'}
+            <div class="list">
+              ${(result || []).length ? result.map(function (item) {
+                return `
+                  <div class="item">
+                    <strong>${item.de} → ${item.para}</strong>
+                    <div>${item.mensagem}</div>
+                    <div class="meta">${item.data}</div>
+                  </div>
+                `;
+              }).join('') : '<div class="empty-state">Nenhum reconhecimento ainda.</div>'}
+            </div>
           `;
 
           document.getElementById('reconhecimentoContent').innerHTML = html;
 
-          document.getElementById('addReconhecimentoBtn').addEventListener('click', function () {
-            document.getElementById('reconhecimentoForm').classList.toggle('hidden');
-          });
+          const newReconhecimentoBtn = document.getElementById('newReconhecimentoBtn');
+          if (newReconhecimentoBtn) {
+            newReconhecimentoBtn.addEventListener('click', function () {
+              document.getElementById('newReconhecimentoForm').classList.toggle('hidden');
+            });
+          }
 
-          document.getElementById('saveReconhecimentoBtn').addEventListener('click', function () {
-            const cpf = normalizeCPF(document.getElementById('reconhecimentoCPF').value);
-            const nome = document.getElementById('reconhecimentoNome').value.trim();
-            const mensagem = document.getElementById('reconhecimentoTexto').value.trim();
+          const saveReconhecimentoBtn = document.getElementById('saveReconhecimentoBtn');
+          if (saveReconhecimentoBtn) {
+            saveReconhecimentoBtn.addEventListener('click', function () {
+              const para = document.getElementById('reconhecimentoPara').value.trim();
+              const mensagem = document.getElementById('reconhecimentoMsg').value.trim();
 
-            if (!cpf || !nome || !mensagem) {
-              showToast('Preencha CPF, nome e mensagem.');
-              return;
-            }
+              if (!para || !mensagem) {
+                showToast('Preencha todos os campos.');
+                return;
+              }
 
-            google.script.run.withSuccessHandler(function (resp) {
-              showToast(resp && resp.mensagem ? resp.mensagem : 'Reconhecimento enviado.');
-              loadReconhecimentos();
-            }).criarReconhecimento(currentToken, { paraCPF: cpf, paraNome: nome, mensagem: mensagem });
-          });
+              google.script.run.withSuccessHandler(function (resp) {
+                showToast(resp && resp.mensagem ? resp.mensagem : 'Reconhecimento enviado.');
+                loadReconhecimentos();
+              }).criarReconhecimento(currentToken, { paraNome: para, mensagem: mensagem });
+            });
+          }
         }).listarReconhecimentos(currentToken);
       }
 
       function loadPesquisas() {
         google.script.run.withSuccessHandler(function (result) {
           const isRH = currentUser.perfil === 'RH' || currentUser.perfil === 'ADMIN';
-          const html = `
-            ${isRH ? `
-              <div class="toolbar">
-                <button class="btn-primary" id="newPesquisaBtn">Criar pesquisa</button>
+          
+          if (isRH) {
+            const html = `
+              <div class="list">
+                ${(result || []).length ? result.map(function (item) {
+                  return `
+                    <div class="item" style="cursor: pointer;" onclick="verResultadosPesquisa('${item.id}')">
+                      <strong>${item.categoria}</strong>
+                      <div>${item.pergunta}</div>
+                      <div class="meta">${item.data} • ${item.autor}</div>
+                      <button class="btn-small" style="margin-top: 10px;">Ver respostas</button>
+                    </div>
+                  `;
+                }).join('') : '<div class="empty-state">Nenhuma pesquisa.</div>'}
               </div>
-              <div id="newPesquisaForm" class="hidden" style="margin-bottom: 20px;">
-                <div class="forms card" style="padding: 18px; border: 1px solid #e9e9e9;">
-                  <div class="field">
-                    <label>Pergunta</label>
-                    <input id="pesquisaPergunta" type="text" placeholder="Pergunta da pesquisa" />
-                  </div>
-                  <div class="field">
-                    <label>Opção 1</label>
-                    <input id="pesquisaOpcao1" type="text" placeholder="Opção 1" />
-                  </div>
-                  <div class="field">
-                    <label>Opção 2</label>
-                    <input id="pesquisaOpcao2" type="text" placeholder="Opção 2" />
-                  </div>
-                  <div class="field">
-                    <label>Opção 3</label>
-                    <input id="pesquisaOpcao3" type="text" placeholder="Opção 3" />
-                  </div>
-                  <div class="field">
-                    <label>Opção 4</label>
-                    <input id="pesquisaOpcao4" type="text" placeholder="Opção 4" />
-                  </div>
-                  <div class="toolbar">
-                    <button class="btn-primary" id="savePesquisaBtn">Salvar pesquisa</button>
-                  </div>
-                </div>
+            `;
+            document.getElementById('pesquisaContent').innerHTML = html;
+          } else {
+            const html = `
+              <div class="list">
+                ${(result || []).length ? result.map(function (item) {
+                  return `
+                    <div class="item">
+                      <strong>${item.categoria}</strong>
+                      <div style="margin: 10px 0;">${item.pergunta}</div>
+                      <label style="display: block; margin-bottom: 8px; font-weight: 600;">Sua avaliação (0 a 5):</label>
+                      <div class="rating-buttons" id="rating-${item.id}">
+                        <button class="rating-btn" data-nota="0" onclick="selecionarNota('${item.id}', 0)">0</button>
+                        <button class="rating-btn" data-nota="1" onclick="selecionarNota('${item.id}', 1)">1</button>
+                        <button class="rating-btn" data-nota="2" onclick="selecionarNota('${item.id}', 2)">2</button>
+                        <button class="rating-btn" data-nota="3" onclick="selecionarNota('${item.id}', 3)">3</button>
+                        <button class="rating-btn" data-nota="4" onclick="selecionarNota('${item.id}', 4)">4</button>
+                        <button class="rating-btn" data-nota="5" onclick="selecionarNota('${item.id}', 5)">5</button>
+                      </div>
+                      <button class="btn-primary" onclick="responderPesquisa('${item.id}')" style="margin-top: 12px;">Enviar resposta</button>
+                    </div>
+                  `;
+                }).join('') : '<div class="empty-state">Nenhuma pesquisa ativa.</div>'}
               </div>
-            ` : ''}
-            ${(result || []).length ? result.map(function (item) {
-              return `
-                <div class="item">
-                  <strong>${item.pergunta}</strong>
-                  <div>1) ${item.opcao1}</div>
-                  <div>2) ${item.opcao2}</div>
-                  <div>3) ${item.opcao3}</div>
-                  <div>4) ${item.opcao4}</div>
-                  <div class="meta">${item.data}</div>
-                  ${!isRH ? `<div style="margin-top: 12px;"><button class="btn-small" data-resposta="${item.opcao1}" data-pesquisa="${item.id}">Responder: ${item.opcao1}</button>
-                  <button class="btn-small" data-resposta="${item.opcao2}" data-pesquisa="${item.id}">Responder: ${item.opcao2}</button>
-                  <button class="btn-small" data-resposta="${item.opcao3}" data-pesquisa="${item.id}">Responder: ${item.opcao3}</button>
-                  <button class="btn-small" data-resposta="${item.opcao4}" data-pesquisa="${item.id}">Responder: ${item.opcao4}</button></div>` : ''}
-                </div>
-              `;
-            }).join('') : '<div class="empty-state">Nenhuma pesquisa disponível.</div>'}
-          `;
-
-          document.getElementById('pesquisaContent').innerHTML = html;
-
-          const newPesquisaBtn = document.getElementById('newPesquisaBtn');
-          if (newPesquisaBtn) {
-            newPesquisaBtn.addEventListener('click', function () {
-              document.getElementById('newPesquisaForm').classList.toggle('hidden');
-            });
+            `;
+            document.getElementById('pesquisaContent').innerHTML = html;
           }
-
-          const savePesquisaBtn = document.getElementById('savePesquisaBtn');
-          if (savePesquisaBtn) {
-            savePesquisaBtn.addEventListener('click', function () {
-              const pergunta = document.getElementById('pesquisaPergunta').value.trim();
-              const opcao1 = document.getElementById('pesquisaOpcao1').value.trim();
-              const opcao2 = document.getElementById('pesquisaOpcao2').value.trim();
-              const opcao3 = document.getElementById('pesquisaOpcao3').value.trim();
-              const opcao4 = document.getElementById('pesquisaOpcao4').value.trim();
-
-              if (!pergunta || !opcao1 || !opcao2 || !opcao3 || !opcao4) {
-                showToast('Preencha todas as opções da pesquisa.');
-                return;
-              }
-
-              google.script.run.withSuccessHandler(function (resp) {
-                showToast(resp && resp.mensagem ? resp.mensagem : 'Pesquisa salva.');
-                loadPesquisas();
-              }).criarPesquisa(currentToken, {
-                pergunta: pergunta,
-                opcao1: opcao1,
-                opcao2: opcao2,
-                opcao3: opcao3,
-                opcao4: opcao4
-              });
-            });
-          }
-
-          document.querySelectorAll('[data-pesquisa]').forEach(function (button) {
-            button.addEventListener('click', function () {
-              const pesquisaID = button.dataset.pesquisa;
-              const resposta = button.dataset.resposta;
-
-              google.script.run.withSuccessHandler(function (resp) {
-                showToast(resp && resp.mensagem ? resp.mensagem : 'Resposta registrada.');
-                loadPesquisas();
-              }).responderPesquisa(currentToken, pesquisaID, resposta);
-            });
-          });
         }).listarPesquisas(currentToken);
+      }
+
+      function selecionarNota(pesquisaID, nota) {
+        notasSelecionadas[pesquisaID] = nota;
+        const rating = document.getElementById('rating-' + pesquisaID);
+        if (rating) {
+          rating.querySelectorAll('.rating-btn').forEach(function(btn) {
+            btn.classList.remove('selected');
+            if (parseInt(btn.dataset.nota) === nota) {
+              btn.classList.add('selected');
+            }
+          });
+        }
+      }
+
+      function responderPesquisa(pesquisaID) {
+        const nota = notasSelecionadas[pesquisaID];
+        
+        if (nota === undefined) {
+          showToast('Selecione uma nota de 0 a 5.');
+          return;
+        }
+
+        google.script.run.withSuccessHandler(function (resp) {
+          if (resp && resp.sucesso) {
+            showToast(resp.mensagem || 'Resposta enviada com sucesso.');
+            notasSelecionadas = {};
+            loadPesquisas();
+          } else {
+            showToast(resp && resp.mensagem ? resp.mensagem : 'Erro ao enviar resposta.');
+          }
+        }).responderPesquisa(currentToken, { pesquisaID: pesquisaID, nota: nota });
+      }
+
+      function verResultadosPesquisa(pesquisaID) {
+        google.script.run.withSuccessHandler(function (result) {
+          const modal = document.createElement('div');
+          const respostasHtml = (result.respostas || []).map(function(r) {
+            return `<div style="padding: 8px 0; border-bottom: 1px solid #e9e9e9;"><strong>${r.nome}</strong>: ${r.nota} • ${r.data}</div>`;
+          }).join('');
+
+          modal.innerHTML = `
+            <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.52); display: grid; place-items: center; z-index: 100; padding: 16px;">
+              <div style="width: min(100%, 600px); background: white; border-radius: 18px; padding: 22px; box-shadow: 0 24px 60px rgba(0,0,0,0.2); max-height: 80vh; overflow-y: auto;">
+                <h3 style="margin-top: 0; color: #8e1c1c;">Resultados da pesquisa</h3>
+                <div style="margin: 16px 0;">
+                  <strong>Média de notas:</strong> <span style="font-size: 1.5rem; color: var(--red-700);">${result.mediaNotas}</span>
+                </div>
+                <div style="margin: 16px 0;">
+                  <strong>Total de respostas:</strong> ${result.totalRespostas}
+                </div>
+                <div style="margin: 16px 0;">
+                  <h4>Respostas individuais:</h4>
+                  ${respostasHtml || '<div class="empty-state">Sem respostas ainda.</div>'}
+                </div>
+                <button class="btn-primary" onclick="this.closest('[style*=position]').remove();" style="width: 100%; margin-top: 16px;">Fechar</button>
+              </div>
+            </div>
+          `;
+          document.body.appendChild(modal);
+        }).obterRespostasPesquisa(currentToken, pesquisaID);
       }
 
       function loadColaboradores() {
         const isRH = currentUser.perfil === 'RH' || currentUser.perfil === 'ADMIN';
 
         if (!isRH) {
-          document.getElementById('colaboradoresContent').innerHTML = '<div class="empty-state">Você não possui acesso à gestão de colaboradores.</div>';
+          document.getElementById('colaboradoresContent').innerHTML = '<div class="empty-state">Acesso restrito ao RH.</div>';
           return;
         }
 
-        const html = `
-          <div class="toolbar">
-            <button class="btn-primary" id="addColaboradorBtn">Cadastrar colaborador</button>
-          </div>
-          <div id="addColaboradorForm" class="hidden" style="margin-bottom: 20px;">
-            <div class="forms card" style="padding: 18px; border: 1px solid #e9e9e9;">
-              <div class="grid-2">
-                <div class="field">
-                  <label>CPF</label>
-                  <input id="colabCpf" type="text" maxlength="11" placeholder="CPF" />
-                </div>
-                <div class="field">
-                  <label>Nome</label>
-                  <input id="colabNome" type="text" placeholder="Nome do colaborador" />
-                </div>
-              </div>
-              <div class="grid-2">
-                <div class="field">
-                  <label>Nascimento</label>
-                  <input id="colabNascimento" type="date" />
-                </div>
-                <div class="field">
-                  <label>Cargo</label>
-                  <input id="colabCargo" type="text" placeholder="Cargo" />
-                </div>
-              </div>
-              <div class="grid-2">
-                <div class="field">
-                  <label>Setor</label>
-                  <input id="colabSetor" type="text" placeholder="Setor" />
-                </div>
-                <div class="field">
-                  <label>Telefone</label>
-                  <input id="colabTelefone" type="text" placeholder="Telefone" />
-                </div>
-              </div>
-              <div class="field">
-                <label>Email</label>
-                <input id="colabEmail" type="email" placeholder="Email" />
-              </div>
-              <div class="toolbar">
-                <button class="btn-primary" id="saveColaboradorBtn">Salvar colaborador</button>
-              </div>
-            </div>
-          </div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Nome</th>
-                  <th>CPF</th>
-                  <th>Cargo</th>
-                  <th>Setor</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${resultRows()}
-              </tbody>
-            </table>
-          </div>
-        `;
-
-        function resultRows() {
-          google.script.run.withSuccessHandler(function (result) {
-            const tableBody = result && result.length ? result.map(function (item) {
-              return `
-                <tr>
-                  <td>${item.nome}</td>
-                  <td>${item.cpf}</td>
-                  <td>${item.cargo}</td>
-                  <td>${item.setor}</td>
-                  <td>${item.ativo ? 'Ativo' : 'Inativo'}</td>
-                </tr>
-              `;
-            }).join('') : '<tr><td colspan="5">Nenhum colaborador cadastrado.</td></tr>';
-
-            document.getElementById('colaboradoresContent').innerHTML = html.replace('${resultRows()}', tableBody);
-
-            const addColaboradorBtn = document.getElementById('addColaboradorBtn');
-            if (addColaboradorBtn) {
-              addColaboradorBtn.addEventListener('click', function () {
-                document.getElementById('addColaboradorForm').classList.toggle('hidden');
-              });
-            }
-
-            const saveColaboradorBtn = document.getElementById('saveColaboradorBtn');
-            if (saveColaboradorBtn) {
-              saveColaboradorBtn.addEventListener('click', function () {
-                const cpf = normalizeCPF(document.getElementById('colabCpf').value);
-                const nome = document.getElementById('colabNome').value.trim();
-                const nascimento = document.getElementById('colabNascimento').value;
-                const cargo = document.getElementById('colabCargo').value.trim();
-                const setor = document.getElementById('colabSetor').value.trim();
-                const telefone = document.getElementById('colabTelefone').value.trim();
-                const email = document.getElementById('colabEmail').value.trim();
-
-                if (!cpf || !nome) {
-                  showToast('Informe CPF e nome do colaborador.');
-                  return;
-                }
-
-                google.script.run.withSuccessHandler(function (resp) {
-                  showToast(resp && resp.mensagem ? resp.mensagem : 'Colaborador cadastrado.');
-                  loadColaboradores();
-                  loadDashboard();
-                }).criarColaborador(currentToken, {
-                  cpf: cpf,
-                  nome: nome,
-                  nascimento: nascimento,
-                  cargo: cargo,
-                  setor: setor,
-                  telefone: telefone,
-                  email: email,
-                  lojaID: currentUser.lojaID
-                });
-              });
-            }
-          }).listarColaboradores(currentToken);
-        }
-      }
-
-      function init() {
-        const token = localStorage.getItem(SESSION_KEY);
-        if (!token) {
-          document.getElementById('loginView').classList.remove('hidden');
-          document.getElementById('appView').classList.add('hidden');
-          return;
-        }
-
-        currentToken = token;
         google.script.run.withSuccessHandler(function (result) {
-          if (!result) {
-            showToast('Sessão inválida. Faça login novamente.');
-            localStorage.removeItem(SESSION_KEY);
-            document.getElementById('loginView').classList.remove('hidden');
-            document.getElementById('appView').classList.add('hidden');
-            return;
-          }
+          const html = `
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Nome</th>
+                    <th>CPF</th>
+                    <th>Cargo</th>
+                    <th>Setor</th>
+                    <th>Email</th>
+                    <th>Telefone</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${(result || []).length ? result.map(function (item) {
+                    return `
+                      <tr>
+                        <td>${item.nome}</td>
+                        <td>${item.cpf}</td>
+                        <td>${item.cargo}</td>
+                        <td>${item.setor}</td>
+                        <td>${item.email}</td>
+                        <td>${item.telefone}</td>
+                        <td><span class="badge">${item.ativo ? 'Ativo' : 'Inativo'}</span></td>
+                      </tr>
+                    `;
+                  }).join('') : '<tr><td colspan="7" style="text-align: center;">Nenhum colaborador.</td></tr>'}
+                </tbody>
+              </table>
+            </div>
+          `;
 
-          currentUser = result.usuario || result;
-          renderApp();
-        }).obterSessao(token);
+          document.getElementById('colaboradoresContent').innerHTML = html;
+        }).listarColaboradores(currentToken);
       }
-
-      init();
     </script>
   </body>
 </html>
